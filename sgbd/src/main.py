@@ -1,0 +1,23 @@
+from esquemas.tabela import Tabela
+
+# Definindo um esquema para a tabela "Clientes"
+esquema_clientes = {
+    "id": int,
+    "nome": str,
+    "email": str,
+    "telefone": str,
+    "pais": str
+}
+
+# Criando uma tabela chamada "Clientes"
+tabela_clientes = Tabela("Clientes", esquema_clientes)
+
+# Inserindo registros válidos
+tabela_clientes.inserir({"id": 1, "nome": "João", "email": "joao@mail.com", "telefone": "123456789", "pais": "Brasil"})
+tabela_clientes.inserir({"id": 2, "nome": "Maria", "email": "maria@mail.com", "telefone": "987654321", "pais": "Espanha"})
+
+# Tentando inserir um registro inválido (telefone como inteiro em vez de string)
+tabela_clientes.inserir({"id": 3, "nome": "Carlos", "email": "carlos@mail.com", "telefone": 123456789})
+
+# Listando os registros na tabela
+print(tabela_clientes.exibirTabela())
