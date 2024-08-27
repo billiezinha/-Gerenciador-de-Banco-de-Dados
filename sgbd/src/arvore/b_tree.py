@@ -1,6 +1,10 @@
-# /src/b_tree/b_tree.py
+import sys
+import os
 
-from .node import BTreeNode
+# Adiciona o diretório raiz do projeto ao sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from src.arvore.node import BTreeNode
 
 class BTree:
     def __init__(self, t):
@@ -70,4 +74,106 @@ class BTree:
 
         if not y.is_leaf():
             z.children = y.children[t:(2 * t)]
-            y.children = y.children[0:t - 1]
+            y.children = y.children[0:t]
+
+    def delete(self, k, node=None):
+        if node is None:
+            node = self.root
+
+        idx = self._find_key(node, k)
+
+        if idx < len(node.keys) and node.keys[idx] == k:
+            if node.is_leaf():
+                node.keys.pop(idx)
+            else:
+                self._delete_internal_node(node, k, idx)
+        else:
+            if node.is_leaf():
+                return  # O k não está presente na árvore
+            flag = (idx == len(node.keys))
+
+            if len(node.children[idx].keys) < self.t:
+                self._fill(node, idx)
+
+            if flag and idx > len(node.keys):
+                self.delete(k, node.children[idx - 1])
+            else:
+                self.delete(k, node.children[idx])
+
+    def _find_key(self, node, k):
+        idx = 0
+        while idx < len(node.keys) and node.keys[idx] < k:
+            idx += 1
+        return idx
+
+    def _delete_internal_node(self, node, k, idx):
+        if len(node.children[idx].keys) >= self.t:
+            pred = self._get_predecessor(node, idx)
+            node.keys[idx] = pred
+            self.delete(pred, node.children[idx])
+        elif len(node.children[idx + 1].keys) >= self.t:
+            succ = self._get_successor(node, idx)
+            node.keys[idx] = succ
+            self.delete(succ, node.children[idx + 1])
+        else:
+            self._merge(node, idx)
+            self.delete(k, node.children[idx])
+
+    def _get_predecessor(self, node, idx):
+        current = node.children[idx]
+        while not current.is_leaf():
+            current = current.children[-1]
+        return current.keys[-1]
+
+    def _get_successor(self, node, idx):
+        current = node.children[idx + 1]
+        while not current.is_leaf():
+            current = current.children[0]
+        return current.keys[0]
+
+    def _fill(self, node, idx):
+        if idx != 0 and len(node.children[idx - 1].keys) >= self.t:
+            self._borrow_from_prev(node, idx)
+        elif idx != len(node.keys) and len(node.children[idx + 1].keys) >= self.t:
+            self._borrow_from_next(node, idx)
+        else:
+            if idx != len(node.keys):
+                self._merge(node, idx)
+            else:
+                self._merge(node, idx - 1)
+
+    def _borrow_from_prev(self, node, idx):
+        child = node.children[idx]
+        sibling = node.children[idx - 1]
+
+        child.keys.insert(0, node.keys[idx - 1])
+        if not child.is_leaf():
+            child.children.insert(0, sibling.children.pop())
+
+        node.keys[idx - 1] = sibling.keys.pop()
+
+    def _borrow_from_next(self, node, idx):
+        child = node.children[idx]
+        sibling = node.children[idx + 1]
+
+        child.keys.append(node.keys[idx])
+        if not child.is_leaf():
+            child.children.append(sibling.children.pop(0))
+
+        node.keys[idx] = sibling.keys.pop(0)
+
+    def _merge(self, node, idx):
+        child = node.children[idx]
+        sibling = node.children[idx + 1]
+
+        child.keys.append(node.keys[idx])
+
+        child.keys.extend(sibling.keys)
+        if not child.is_leaf():
+            child.children.extend(sibling.children)
+
+        node.keys.pop(idx)
+        node.children.pop(idx + 1)
+
+        if node == self.root and len(node.keys) == 0:
+            self.root = child
