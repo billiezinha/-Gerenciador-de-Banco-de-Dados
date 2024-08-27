@@ -24,7 +24,7 @@
 
 # /src/main.py
 
-from b_tree.b_tree import BTree
+from arvore.b_tree import BTree
 
 def main():
     btree = BTree(3)  # Grau mínimo t = 3
