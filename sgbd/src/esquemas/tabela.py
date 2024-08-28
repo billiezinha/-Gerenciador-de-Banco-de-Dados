@@ -31,3 +31,36 @@ class Tabela:
             print(row)
 
         print(header)
+
+    def atualizar(self, id_registro, novos_dados):
+        for registro in self.registros:
+            if registro['id'] == id_registro:
+                for chave, valor in novos_dados.items():
+                    if chave in self.esquema.esquema_desc:
+                        if not isinstance(valor, self.esquema.esquema_desc[chave]):
+                            raise ValueError(f"Campo '{chave}' deve ser do tipo {self.esquema.esquema_desc[chave].__name__}")
+                        registro[chave] = valor
+                    else:
+                        raise ValueError(f"Campo '{chave}' não faz parte do esquema da tabela")
+                print(f"Registro com ID {id_registro} atualizado com sucesso.")
+                return
+        print(f"Registro com ID {id_registro} não encontrado na tabela '{self.nome}'.")
+
+
+    def excluir(self, id_registro):
+        print(f"Excluindo registro com ID {id_registro} da tabela '{self.nome}'")
+        print("Registros antes da exclusão:", self.registros)
+        
+        for i, registro in enumerate(self.registros):
+            print(f"Verificando registro: {registro}")
+            if registro['id'] == id_registro:
+                del self.registros[i]
+                print(f"Registro com ID {id_registro} excluído com sucesso da tabela '{self.nome}'.")
+                print("Registros após a exclusão:", self.registros)
+                return
+        
+        print(f"Registro com ID {id_registro} não encontrado na tabela '{self.nome}'.")
+
+
+        
+
