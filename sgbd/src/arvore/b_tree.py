@@ -4,21 +4,33 @@ import os
 # Adiciona o diretório raiz do projeto ao sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from src.arvore.node import BTreeNode
+class BTreeNode:
+    def __init__(self, t, leaf=False):
+        self.t = t  # Grau mínimo
+        self.leaf = leaf
+        self.keys = []
+        self.children = []
+
+    def is_leaf(self):
+        return self.leaf
 
 class BTree:
     def __init__(self, t):
+        self.root = BTreeNode(t, True)
         self.t = t
-        self.root = BTreeNode(t, leaf=True)
+
+    def is_leaf(self, node):
+        return node.is_leaf()
 
     def traverse(self, node):
-        i = 0
-        for i in range(len(node.keys)):
+        if node is not None:
+            i = 0
+            for i in range(len(node.keys)):
+                if not node.is_leaf():
+                    self.traverse(node.children[i])
+                print(node.keys[i], end=' ')
             if not node.is_leaf():
-                self.traverse(node.children[i])
-            print(node.keys[i], end=' ')
-        if not node.is_leaf():
-            self.traverse(node.children[i + 1])
+                self.traverse(node.children[i + 1])
 
     def search(self, k, node=None):
         if node is None:
@@ -38,7 +50,7 @@ class BTree:
         if len(root.keys) == (2 * self.t) - 1:
             temp = BTreeNode(self.t)
             self.root = temp
-            temp.children.insert(0, root)
+            temp.children.append(root)
             self.split_child(temp, 0)
             self.insert_non_full(temp, k)
         else:
@@ -65,7 +77,7 @@ class BTree:
     def split_child(self, node, i):
         t = self.t
         y = node.children[i]
-        z = BTreeNode(t, y.leaf)
+        z = BTreeNode(t, y.is_leaf())
         node.children.insert(i + 1, z)
         node.keys.insert(i, y.keys[t - 1])
 
