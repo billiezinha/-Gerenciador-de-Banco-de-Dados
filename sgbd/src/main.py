@@ -1,107 +1,108 @@
-import sqlite3
-from arvore_b.btree import BTree
+import time
+from tabela import Tabela
 
-# Função para conectar ao banco de dados e criar a tabela, se não existir
-def connect_db():
-    conn = sqlite3.connect('btree.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS BTreeData (
-            id INTEGER PRIMARY KEY,
-            key INTEGER NOT NULL,
-            value TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    return conn, cursor
+esquema = {
+    "id": int,
+    "nome": str,
+    "idade": int
+}
+tabela = Tabela("Clientes", esquema)
 
-# Função para carregar dados do banco de dados para a árvore B
-def load_data(cursor, btree):
-    cursor.execute("SELECT key, value FROM BTreeData ORDER BY key")
-    rows = cursor.fetchall()
-    for row in rows:
-        btree.insert((row[0], row[1]))
+def medir_tempo_insercao(tabela, num_registros):
+    inicio = time.time()
+    for i in range(num_registros):
+        tabela.inserir({"id": i, "nome": f"Cliente {i}", "idade": 30 + (i % 20)})
+    fim = time.time()
+    print(f"Tempo para inserir {num_registros} registros: {fim - inicio} segundos")
 
-# Função para inserir dados no banco de dados
-def insert_to_db(cursor, conn, key, value):
-    cursor.execute("INSERT INTO BTreeData (key, value) VALUES (?, ?)", (key, value))
-    conn.commit()
+medir_tempo_insercao(tabela, 1000)
+medir_tempo_insercao(tabela, 10000)
+medir_tempo_insercao(tabela, 100000)
 
-# Função para deletar dados do banco de dados
-def delete_from_db(cursor, conn, key):
-    cursor.execute("DELETE FROM BTreeData WHERE key = ?", (key,))
-    conn.commit()
 
-# Função para inserir dados iniciais no banco de dados e na árvore B
-def insert_initial_data(cursor, conn, btree):
-    initial_data = [
-        (10, "Item 10"),
-        (20, "Item 20"),
-        (5, "Item 5"),
-        (6, "Item 6"),
-        (12, "Item 12"),
-        (30, "Item 30"),
-        (7, "Item 7"),
-        (17, "Item 17")
-    ]
-    
-    for key, value in initial_data:
-        btree.insert((key, value))
-        insert_to_db(cursor, conn, key, value)
+def medir_tempo_busca(tabela, num_buscas):
+    inicio = time.time()
+    for i in range(num_buscas):
+        tabela.arvore_b.search(i)  # Busca pelo ID
+    fim = time.time()
+    print(f"Tempo para buscar {num_buscas} registros: {fim - inicio} segundos")
 
-def print_menu():
-    print("\nEscolha uma opção:")
-    print("1. Inserir uma chave")
-    print("2. Excluir uma chave")
-    print("3. Buscar uma chave")
-    print("4. Exibir a árvore")
-    print("5. Sair")
 
-def main():
-    t = int(input("Digite o valor mínimo de chaves por nó (t): "))
-    btree = BTree(t)
+# medir_tempo_busca(tabela, 1000)
+# medir_tempo_busca(tabela, 10000)
+# medir_tempo_busca(tabela, 100000)
 
-    conn, cursor = connect_db()
-    
-    # Inserir dados iniciais no banco de dados e na árvore B
-    insert_initial_data(cursor, conn, btree)
+def medir_tempo_atualizacao(tabela, num_atualizacoes):
+    inicio = time.time()
+    for i in range(num_atualizacoes):
+        tabela.atualizar(i, {"nome": f"Cliente Atualizado {i}", "idade": 40 + (i % 20)})
+    fim = time.time()
+    print(f"Tempo para atualizar {num_atualizacoes} registros: {fim - inicio} segundos")
 
-    while True:
-        print_menu()
-        choice = input("Opção: ")
+# medir_tempo_atualizacao(tabela, 1000)
+# medir_tempo_atualizacao(tabela, 10000)
+# medir_tempo_atualizacao(tabela, 100000)
 
-        if choice == "1":
-            key = int(input("Digite a chave a ser inserida: "))
-            value = input("Digite o valor associado à chave (ex: 'nome', 'idade', etc.): ")
-            btree.insert((key, value))
-            insert_to_db(cursor, conn, key, value)
-            print(f"Chave {key} inserida com sucesso.")
-        elif choice == "2":
-            key = int(input("Digite a chave a ser excluída: "))
-            btree.delete((key,))
-            delete_from_db(cursor, conn, key)
-            print(f"Chave {key} excluída com sucesso.")
-        elif choice == "3":
-            key = int(input("Digite a chave a ser procurada!!: "))
-            node = btree.search(key)
-            if node:
-                for k, v in node.keys:
-                    if k == key:
-                        print(f"Chave {key} encontrada com valor '{v}'.")
-                        break
-            else:
-                print(f"Chave {key} não encontrada.")
-        elif choice == "4":
-            print("Árvore B:")
-            btree.traverse(btree.root)
-            print()  # Nova linha para melhor formatação
-        elif choice == "5":
-            print("Encerrando o programa.")
-            break
-        else:
-            print("Opção inválida. Tente novamente.")
+def medir_tempo_exclusao(tabela, num_exclusoes):
+    inicio = time.time()
+    for i in range(num_exclusoes):
+        tabela.excluir(i)
+    fim = time.time()
+    print(f"Tempo para excluir {num_exclusoes} registros: {fim - inicio} segundos")
 
-    conn.close()
 
-if __name__ == "__main__":
-    main()
+# medir_tempo_exclusao(tabela, 1000)
+# medir_tempo_exclusao(tabela, 10000)
+# medir_tempo_exclusao(tabela, 100000)
+
+# !pip install memory-profiler
+
+from memory_profiler import memory_usage
+# from tabela import Tabela
+
+# Função para medir o consumo de memória
+def medir_memoria_insercao(tabela, num_registros):
+    def inserir_dados():
+        for i in range(num_registros):
+            tabela.inserir({"id": i, "nome": f"Cliente {i}", "idade": 30 + (i % 20)})
+
+    mem_inicial = memory_usage()[0]
+    inserir_dados()
+    mem_final = memory_usage()[0]
+    print(f"Consumo de memória para inserir {num_registros} registros: {mem_final - mem_inicial} MB")
+
+
+# medir_memoria_insercao(tabela, 1000)
+# medir_memoria_insercao(tabela, 10000)
+# medir_memoria_insercao(tabela, 100000)
+
+def medir_memoria_atualizacao(tabela, num_atualizacoes):
+    def atualizar_dados():
+        for i in range(num_atualizacoes):
+            tabela.atualizar(i, {"nome": f"Cliente Atualizado {i}", "idade": 40 + (i % 20)})
+
+    mem_inicial = memory_usage()[0]
+    atualizar_dados()
+    mem_final = memory_usage()[0]
+    print(f"Consumo de memória para atualizar {num_atualizacoes} registros: {mem_final - mem_inicial} MB")
+
+# medir_memoria_atualizacao(tabela, 1000)
+# medir_memoria_atualizacao(tabela, 10000)
+medir_memoria_atualizacao(tabela, 100000)
+
+def medir_memoria_exclusao(tabela, num_exclusoes):
+    def excluir_dados():
+        for i in range(num_exclusoes):
+            tabela.excluir(i)
+
+    mem_inicial = memory_usage()[0]
+    excluir_dados()
+    mem_final = memory_usage()[0]
+    print(f"Consumo de memória para excluir {num_exclusoes} registros: {mem_final - mem_inicial} MB")
+
+
+# medir_memoria_exclusao(tabela, 1000)
+medir_memoria_exclusao(tabela, 10000)
+# medir_memoria_exclusao(tabela, 100000
+
+
