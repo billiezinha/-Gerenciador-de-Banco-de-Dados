@@ -82,7 +82,7 @@ def main():
             delete_from_db(cursor, conn, key)
             print(f"Chave {key} excluída com sucesso.")
         elif choice == "3":
-            key = int(input("Digite a chave a ser buscada: "))
+            key = int(input("Digite a chave a ser procurada!!: "))
             node = btree.search(key)
             if node:
                 for k, v in node.keys:
