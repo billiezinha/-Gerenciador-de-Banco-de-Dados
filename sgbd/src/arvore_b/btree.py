@@ -1,18 +1,4 @@
-import sys
-import os
-
-# Adiciona o diretório raiz do projeto ao sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-class BTreeNode:
-    def __init__(self, t, leaf=False):
-        self.t = t  # Grau mínimo
-        self.leaf = leaf
-        self.keys = []
-        self.children = []
-
-    def is_leaf(self):
-        return self.leaf
+from .btreenode import BTreeNode
 
 class BTree:
     def __init__(self, t):
@@ -36,14 +22,16 @@ class BTree:
         if node is None:
             node = self.root
         i = 0
-        while i < len(node.keys) and k > node.keys[i]:
+        # Modificação aqui para comparar o primeiro elemento da tupla (o ID)
+        while i < len(node.keys) and k > node.keys[i][0]:
             i += 1
-        if i < len(node.keys) and k == node.keys[i]:
+        if i < len(node.keys) and k == node.keys[i][0]:
             return node
         elif node.is_leaf():
             return None
         else:
             return self.search(k, node.children[i])
+
 
     def insert(self, k):
         root = self.root
@@ -114,9 +102,11 @@ class BTree:
 
     def _find_key(self, node, k):
         idx = 0
-        while idx < len(node.keys) and node.keys[idx] < k:
+        # Modificação aqui para comparar o primeiro elemento da tupla (o ID)
+        while idx < len(node.keys) and node.keys[idx][0] < k:
             idx += 1
         return idx
+
 
     def _delete_internal_node(self, node, k, idx):
         if len(node.children[idx].keys) >= self.t:

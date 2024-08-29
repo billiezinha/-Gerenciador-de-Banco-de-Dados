@@ -7,4 +7,3 @@ class Esquema:
             tipo_esperado = self.esquema_desc.get(chave)
             if tipo_esperado and not isinstance(valor, tipo_esperado):
                 raise ValueError(f"Valor inválido para a coluna '{chave}'. Esperado {tipo_esperado.__name__}, obtido {type(valor).__name__}.")
-            
